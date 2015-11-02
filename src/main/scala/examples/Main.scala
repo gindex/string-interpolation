@@ -1,3 +1,5 @@
+package examples
+
 import interpolation.{CustomTemplate, CustomParsing}
 
 object Main extends App {
