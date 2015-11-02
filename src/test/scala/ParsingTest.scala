@@ -38,7 +38,7 @@ class ParsingTest extends FlatSpec with Matchers {
   //test parseVariables function
   val parseVariables = customParsing.parseVariables(";")(customParsing.extractPair("="))
 
-  //correctly formated
+  //formated correctly
   val variables1 = "fruit = lemons; product = lemonade"
   val expectedMap1 = Map("fruit" -> "lemons", "product" -> "lemonade")
 
@@ -48,7 +48,7 @@ class ParsingTest extends FlatSpec with Matchers {
     difference.isEmpty should be (right = true)
   }
 
-  //wrongly formated
+  //formated wrongly
   val variables2 = "fruit = lemons; lemonade"
   val expectedMap2 = Map("fruit" -> "lemons")
 

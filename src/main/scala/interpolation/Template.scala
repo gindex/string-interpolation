@@ -29,7 +29,7 @@ trait Template {
   type TemplateProperties = Seq[(Option[(String,Int,Boolean)], Option[(Int,Boolean)])]
 
   //extracts varibale mentions from template string and checks syntax
-  lazy val procesedTemplate: TemplateProperties =
+  val preProcessTemplate: Seq[String] => TemplateProperties = tokens =>
     for((token, index) <- tokens.zipWithIndex if token.contains(startSign)) yield {
       val extractVariableIdentifier = variableRegex.findFirstIn(token)
       //test if the token is a variable identifier
@@ -38,53 +38,68 @@ trait Template {
         val syntaxCheck = checkIdentifierSyntax( extractVariableIdentifier.get)
         (Some((extractVariableIdentifier.get, index, syntaxCheck)), None)
       } else {
-        //test if variable identifier sign was escaped correctly
+        //test if start sign of identifier was escaped correctly
         val syntaxCheck = checkStartSignSyntax(token)
         (None, Some(index, syntaxCheck))
       }
-  }
+    }
 
   //creates a map of mentiond variables with corresponding index within the template
-  lazy val variableMentionIndexes = procesedTemplate.filter(_._1.isDefined).map(token =>
-    (unpackIdentifier(token._1.get._1),(token._1.get._1, token._1.get._2))).toMap
+  val findVariableMentionIndexes: TemplateProperties => Seq[(String, (String, Int))] =
+    processedTemplate => processedTemplate.filter(_._1.isDefined).map(token =>
+      (unpackIdentifier(token._1.get._1),(token._1.get._1, token._1.get._2)))
 
-  //create a sequence of unescaped template template
-  lazy val templateAsArrayOfStrings = {
-    val escaped = procesedTemplate.filter(_._2.isDefined).map(_._2.get._1)
-    for((token, index) <- tokens.zipWithIndex) yield {
-      //treat escaped characters
-      if(escaped.contains(index)) treatEscapedStartSign(token)
-      else token
-    }
-  }.toArray
+  //create an array of unescaped template tokens
+  val createTemplate: TemplateProperties => Seq[String] => Array[String] =
+    processedTemplate => tokens => {
+      val escaped = processedTemplate.filter(_._2.isDefined).map(_._2.get._1)
+      for((token, index) <- tokens.zipWithIndex) yield {
+        //treat escaped characters
+        if(escaped.contains(index)) treatEscapedStartSign(token)
+        else token
+      }
+    }.toArray
+
+  //process template
+  lazy val processedTemplate: TemplateProperties = preProcessTemplate(tokens)
+  lazy val variableMentionIndexes = findVariableMentionIndexes(processedTemplate)
+  lazy val templateAsArrayOfStrings = createTemplate(processedTemplate)(tokens)
+
+  //check the syntax
+  //is true, if template was syntactic correct
+  val checkSytax: TemplateProperties => Boolean = processedTemplate =>
+   processedTemplate.foldLeft(true){ (g,token) =>
+    val check = if(token._1.isDefined) token._1.get._3 else token._2.get._2
+    check && g
+  }
+
+  //reject wrong formatted templates
+  if(!checkSytax(processedTemplate))
+    throw new TemplateSyntaxtException("The syntax of the template is incorrect: \n "
+      + tokens.mkString(" "))
+
 
   //creates new string with interpolated variables
   def interpolate(variables: Map[String,String]) = {
-    for(identifier <- variables.keys) {
-      variableMentionIndexes.get(identifier) match {
+    for((identifier,tuple) <- variableMentionIndexes) {
+      variables.get(identifier) match {
         case Some(t) =>
-          templateAsArrayOfStrings(t._2) =
-            templateAsArrayOfStrings(t._2).replace(t._1, variables.get(identifier).get)
-        case None => throw new NonDefinedVariableException(s"Variable $identifier was not defined.")
+          templateAsArrayOfStrings(tuple._2) =
+            templateAsArrayOfStrings(tuple._2).replace(tuple._1, t)
+        case None => throw new NotDefinedVariableException(s"Variable $identifier was not defined.")
       }
     }
     templateAsArrayOfStrings.mkString(" ")
   }
 
-  //is true, if template was syntactic correct
-  lazy val isSyntacticCorrect = procesedTemplate.foldLeft(true){ (g,token) =>
-    val check =  if(token._1.isDefined) token._1.get._3 else token._2.get._2
-    check && g
-  }
-
-  //reject wrong formatted templates
-  if(!isSyntacticCorrect)
-    throw new TemplateSyntaxtException("The syntax of the template is incorrect: \n "
-      + tokens.mkString(" "))
-
 }
 
-class ParenthesisTemplate(template: String) extends Template {
+//Exceptions
+case class TemplateSyntaxtException(msg: String) extends Exception(msg)
+case class NotDefinedVariableException(msg: String) extends Exception(msg)
+
+//Custom template implementation
+class CustomTemplate(template: String) extends Template {
 
   def treatEscapedStartSign(s: String) = s.replaceAll("%%","%")
 
@@ -92,7 +107,7 @@ class ParenthesisTemplate(template: String) extends Template {
 
   def startSign = "%"
 
-  def checkStartSignSyntax(s: String) = s.matches("(%%)+(\\W)*")
+  def checkStartSignSyntax(s: String) = s.matches("(%%)+[^a-zA-Z_0-9%]*")
 
   def checkIdentifierSyntax(identifier: String) = identifier.matches("(%\\()(\\w|-|_)+(\\))")
 
@@ -101,7 +116,3 @@ class ParenthesisTemplate(template: String) extends Template {
   def tokens = template.split(" ")
 
 }
-
-case class TemplateSyntaxtException(msg: String) extends Exception(msg)
-
-case class NonDefinedVariableException(msg: String) extends Exception(msg)

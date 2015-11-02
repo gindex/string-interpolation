@@ -2,6 +2,7 @@ package interpolation
 
 import scala.util.Try
 
+//provides functionality to parse lists of variables
 trait Parsing {
 
   //extracts variable identifiers and value of a single line
