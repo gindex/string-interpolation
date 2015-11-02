@@ -24,13 +24,13 @@ trait Template {
   def variableRegex(): Regex
 
   //split template string into tokens
-  def tokens():Seq[(String,Int)]
+  def tokens():Seq[String]
 
   type TemplateProperties = Seq[(Option[(String,Int,Boolean)], Option[(Int,Boolean)])]
 
   //extracts varibale mentions from template string and checks syntax
   lazy val procesedTemplate: TemplateProperties =
-    for((token, index) <- tokens if token.contains(startSign)) yield {
+    for((token, index) <- tokens.zipWithIndex if token.contains(startSign)) yield {
       val extractVariableIdentifier = variableRegex.findFirstIn(token)
       //test if the token is a variable identifier
       if(extractVariableIdentifier.isDefined) {
@@ -51,7 +51,7 @@ trait Template {
   //create a sequence of unescaped template template
   lazy val templateAsArrayOfStrings = {
     val escaped = procesedTemplate.filter(_._2.isDefined).map(_._2.get._1)
-    for((token, index) <- tokens) yield {
+    for((token, index) <- tokens.zipWithIndex) yield {
       //treat escaped characters
       if(escaped.contains(index)) treatEscapedStartSign(token)
       else token
@@ -80,7 +80,7 @@ trait Template {
   //reject wrong formatted templates
   if(!isSyntacticCorrect)
     throw new TemplateSyntaxtException("The syntax of the template is incorrect: \n "
-      + tokens.map(_._1).mkString(" "))
+      + tokens.mkString(" "))
 
 }
 
@@ -98,7 +98,7 @@ class ParenthesisTemplate(template: String) extends Template {
 
   def variableRegex = "%\\(.*?\\)".r
 
-  def tokens = template.split(" ").zipWithIndex
+  def tokens = template.split(" ")
 
 }
 

@@ -5,8 +5,11 @@ import interpolation.Parsing
 
 class ParsingTest extends FlatSpec with Matchers {
 
+  //initialize anonymous class to test the trait functionality
+  val customParsing =  new Parsing{ def parse(variables: String) = Map() }
+
   //test extractPair function
-  val extractPair = Parsing.extractPair("=")
+  val extractPair = customParsing.extractPair("=")
 
   //test extraction of correct formated variable
   val pair1 = "fruit = lemons"
@@ -33,7 +36,7 @@ class ParsingTest extends FlatSpec with Matchers {
   }
 
   //test parseVariables function
-  val parseVariables = Parsing.parseVariables(";")(Parsing.extractPair("="))
+  val parseVariables = customParsing.parseVariables(";")(customParsing.extractPair("="))
 
   //correctly formated
   val variables1 = "fruit = lemons; product = lemonade"

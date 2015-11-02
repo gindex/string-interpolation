@@ -2,9 +2,7 @@ package interpolation
 
 import scala.util.Try
 
-import util.Config
-
-object Parsing {
+trait Parsing {
 
   //extracts variable identifiers and value of a single line
   //returns a tuple
@@ -21,6 +19,13 @@ object Parsing {
    Map[String,String] =  separator => pairExtractor => variables =>
    variables.split(separator).map(pairExtractor(_)).filter(_.isSuccess).map(_.get).toMap
 
+
+   def parse(variables: String): Map[String,String]
+}
+
+object CustomParsing extends Parsing {
+
   //parses variables and returns a map of identifiers and values
-  def parse(variables: String) = parseVariables(Config.endLine)(extractPair(Config.lineSeparator))(variables)
+  def parse(variables: String) = parseVariables("\n")(extractPair("="))(variables)
+
 }
