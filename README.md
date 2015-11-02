@@ -10,11 +10,11 @@ Example
     $ //define variables
     $ val variables = "fruit = lemons \n product = lemonade"
     $
-    $//define template
+    $ //define template
     $ val template = "When life gives you %(fruit), make %(product).$
     $
-    $//perform string interpolation
-    $val interpolated = new CustomTemplate(template).interpolate(CustomParsing.parse(variables))
+    $ //perform string interpolation
+    $ val interpolated = new CustomTemplate(template).interpolate(CustomParsing.parse(variables))
     $
-    $//this prints: When life gives you lemons, make lemonade.
-    $println(interpolatedString)
+    $ //this prints: When life gives you lemons, make lemonade.
+    $ println(interpolatedString)
