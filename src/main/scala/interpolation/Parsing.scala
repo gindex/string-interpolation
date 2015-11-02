@@ -15,7 +15,7 @@ trait Parsing {
 
   //transforms a list of variables wich are given as a string into a map of variable identifiers and values
   //applies given separator to split string into lines
-  //pairExtractor function shoud split single line into varibale's variable identifier and value
+  //pairExtractor function shoud split single line into identifier and value
   val parseVariables: String => (String => Try[(String,String)]) => String =>
    Map[String,String] =  separator => pairExtractor => variables =>
    variables.split(separator).map(pairExtractor(_)).filter(_.isSuccess).map(_.get).toMap

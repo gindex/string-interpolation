@@ -75,7 +75,7 @@ trait Template {
 
   //reject wrong formatted templates
   if(!checkSytax(processedTemplate))
-    throw new TemplateSyntaxtException("The syntax of the template is incorrect: \n "
+    throw new TemplateSyntaxtException("The syntax of a template was incorrect: \n "
       + tokens.mkString(" "))
 
 
