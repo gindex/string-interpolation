@@ -20,10 +20,10 @@ trait Template {
   //checks if identifier consists of one or more ascii characters, digits, hyphen and underscore
   def checkIdentifierSyntax(identifier: String): Boolean
 
-  //definies regex for extracting varibale identifier
+  //definies regex for extracting variable identifier
   def variableRegex(): Regex
 
-  //split template string into tokens
+  //splits template string into tokens
   def tokens():Seq[String]
 
   type TemplateProperties = Seq[(Option[(String,Int,Boolean)], Option[(Int,Boolean)])]
@@ -44,12 +44,12 @@ trait Template {
       }
     }
 
-  //creates a map of mentiond variables with corresponding index within the template
+  //creates a map of mentioned variables with corresponding index w.r.t the template
   val findVariableMentionIndexes: TemplateProperties => Seq[(String, (String, Int))] =
     processedTemplate => processedTemplate.filter(_._1.isDefined).map(token =>
       (unpackIdentifier(token._1.get._1),(token._1.get._1, token._1.get._2)))
 
-  //create an array of unescaped template tokens
+  //creates an array of unescaped template tokens
   val createTemplate: TemplateProperties => Seq[String] => Array[String] =
     processedTemplate => tokens => {
       val escaped = processedTemplate.filter(_._2.isDefined).map(_._2.get._1)
@@ -65,7 +65,7 @@ trait Template {
   lazy val variableMentionIndexes = findVariableMentionIndexes(processedTemplate)
   lazy val templateAsArrayOfStrings = createTemplate(processedTemplate)(tokens)
 
-  //check the syntax
+  //checks the syntax
   //is true, if template was syntactic correct
   val checkSytax: TemplateProperties => Boolean = processedTemplate =>
    processedTemplate.foldLeft(true){ (g,token) =>
@@ -73,7 +73,7 @@ trait Template {
     check && g
   }
 
-  //reject wrong formatted templates
+  //rejects wrong formatted templates
   if(!checkSytax(processedTemplate))
     throw new TemplateSyntaxtException("The syntax of a template was incorrect: \n "
       + tokens.mkString(" "))

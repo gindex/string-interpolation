@@ -5,17 +5,15 @@ import scala.util.Try
 //provides functionality to parse lists of variables
 trait Parsing {
 
-  //extracts variable identifiers and value of a single line
-  //returns a tuple
+  //extracts variable identifiers and value within a single line
   //e.g. fruit = lemons => (fruit,lemons)
   val extractPair: String => String => Try[(String,String)] = separator => line =>  {
     val pair = line.split(separator)
     Try((pair(0).trim, pair(1).trim))
   }
 
-  //transforms a list of variables wich are given as a string into a map of variable identifiers and values
-  //applies given separator to split string into lines
-  //pairExtractor function shoud split single line into identifier and value
+  //transforms a list of variables wich is given as a string into a map of identifiers and values
+  //applies given separator to split the string into lines
   val parseVariables: String => (String => Try[(String,String)]) => String =>
    Map[String,String] =  separator => pairExtractor => variables =>
    variables.split(separator).map(pairExtractor(_)).filter(_.isSuccess).map(_.get).toMap
